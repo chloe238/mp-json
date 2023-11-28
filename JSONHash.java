@@ -10,10 +10,17 @@ public class JSONHash {
   // | Fields |
   // +--------+
 
+  int size = 0;
+
+  KVPair<JSONString, JSONValue>[] values;
+
+  static final double PROBE_OFFSET = 17;
   // +--------------+------------------------------------------------
   // | Constructors |
   // +--------------+
 
+  public JSONHash (){
+  }
   // +-------------------------+-------------------------------------
   // | Standard object methods |
   // +-------------------------+
@@ -47,7 +54,7 @@ public class JSONHash {
    * Write the value as JSON.
    */
   public void writeJSON(PrintWriter pen) {
-                        // STUB
+    pen.print(this.toString());
   } // writeJSON(PrintWriter)
 
   /**
@@ -89,4 +96,11 @@ public class JSONHash {
     return 0;           // STUB
   } // size()
 
+  public int find(JSONString key){
+    int index = Math.abs(key.hashCode()) % this.values.length;
+    while(!(this.values[index]).key().equals(key) && this.values[index] != null){
+      index = (index + (int)PROBE_OFFSET) % this.size;
+    }
+    return index;
+  }
 } // class JSONHash
