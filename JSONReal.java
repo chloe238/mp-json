@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 /**
  * JSON reals.
  */
-public class JSONReal {
+public class JSONReal implements JSONValue{
 
   // +--------+------------------------------------------------------
   // | Fields |

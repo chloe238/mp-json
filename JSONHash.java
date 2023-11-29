@@ -1,10 +1,17 @@
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Random;
 
 /**
  * JSON hashes/objects.
  */
-public class JSONHash {
+public class JSONHash implements JSONValue{
+  /**
+   * The load factor for expanding the table.
+   */
+  static final double LOAD_FACTOR = 0.5;
+  static final double PROBE_OFFSET = 17;
 
   // +--------+------------------------------------------------------
   // | Fields |
@@ -14,7 +21,11 @@ public class JSONHash {
 
   KVPair<JSONString, JSONValue>[] values;
 
-  static final double PROBE_OFFSET = 17;
+  
+  /**
+   * Our helpful random number generator, used primarily when expanding the size of the table..
+   */
+  Random rand;
   // +--------------+------------------------------------------------
   // | Constructors |
   // +--------------+
@@ -72,31 +83,82 @@ public class JSONHash {
    * Get the value associated with a key.
    */
   public JSONValue get(JSONString key) {
-    return null;        // STUB
+    int index = find(key);
+    KVPair<JSONString, JSONValue> pair = values[index];
+    if (pair == null) {
+      throw new IndexOutOfBoundsException("Invalid key: " + key);
+    } else {
+      while (!key.equals(pair.key())) {
+        index++;
+        if(index >= size) throw new IndexOutOfBoundsException("Invalid key: " + key);
+      }
+      return pair.value();
+    } // get
   } // get(JSONString)
 
   /**
    * Get all of the key/value pairs.
    */
   public Iterator<KVPair<JSONString,JSONValue>> iterator() {
-    return null;        // STUB
+    return new Iterator<KVPair<JSONString, JSONValue>>() {
+      int i = 0;
+      public boolean hasNext() {
+        return this.i < JSONHash.this.size;
+      } // hasNext()
+
+      public KVPair<JSONString, JSONValue> next() throws NoSuchElementException {
+        while(JSONHash.this.values[i] == null){
+          if(!this.hasNext()){
+            throw new NoSuchElementException();
+          }
+          i++;
+        }
+        return JSONHash.this.values[i];
+      } // next()
+    }; // new Iterator
   } // iterator()
 
   /**
    * Set the value associated with a key.
    */
   public void set(JSONString key, JSONValue value) {
-                        // STUB
+    int index = find(key);
+    if (this.values[index] != null) {
+      while (index < this.values.length) {
+        index++;
+        if (this.values[index] == null) {
+          this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
+        }
+      }
+    } else {
+      this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
+    }
+    this.size++;
   } // set(JSONString, JSONValue)
 
   /**
    * Find out how many key/value pairs are in the hash table.
    */
   public int size() {
-    return 0;           // STUB
+    return this.size;
   } // size()
 
-  public int find(JSONString key){
+  /**
+   * Expand the size of the table.
+   */
+  void expand() {
+    // Figure out the size of the new table.
+    int newSize = 2 * this.values.length + 6;
+    // Create a new table of that size.
+    Object[] newPairs = new Object[newSize];
+    // Move all pairs from the old table to their appropriate
+    // location in the new table.
+    // STUB
+    // And update our pairs
+  } // expand()
+
+
+  int find(JSONString key){
     int index = Math.abs(key.hashCode()) % this.values.length;
     while(!(this.values[index]).key().equals(key) && this.values[index] != null){
       index = (index + (int)PROBE_OFFSET) % this.size;

@@ -3,7 +3,7 @@ import java.io.PrintWriter;
 /**
  * JSON constants.
  */
-public class JSONConstant {
+public class JSONConstant implements JSONValue{
 
   // +---------------+-----------------------------------------------
   // | Static fields |
