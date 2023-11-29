@@ -12,6 +12,7 @@ public class JSONHash implements JSONValue{
    */
   static final double LOAD_FACTOR = 0.5;
   static final double PROBE_OFFSET = 17;
+  static final int INITIAL_SIZE = 10;
 
   // +--------+------------------------------------------------------
   // | Fields |
@@ -19,7 +20,7 @@ public class JSONHash implements JSONValue{
 
   int size = 0;
 
-  KVPair<JSONString, JSONValue>[] values;
+  Object[] values;
 
   
   /**
@@ -31,6 +32,8 @@ public class JSONHash implements JSONValue{
   // +--------------+
 
   public JSONHash (){
+    this.size = 0;
+    this.values = new Object[INITIAL_SIZE];
   }
   // +-------------------------+-------------------------------------
   // | Standard object methods |
@@ -40,21 +43,38 @@ public class JSONHash implements JSONValue{
    * Convert to a string (e.g., for printing).
    */
   public String toString() {
-    return "";          // STUB
+    String str = "";
+    for (Object objpair : this.values){
+      if(objpair != null){
+        KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) objpair;
+        str = str + "," + pair.key() + " " + pair.value() ; 
+      }//if not a null value
+    }// for
+    return "[" + str.substring(1) + "]";
   } // toString()
 
   /**
    * Compare to another object.
    */
   public boolean equals(Object other) {
-    return true;        // STUB
+    for (int i = 0; i < size(); i++){
+    if (!((other instanceof JSONHash) && ((JSONHash) other).values[i].equals(this.values[i]))) {
+      return false;
+      }//if
+    }//for
+    return true;        
   } // equals(Object)
 
   /**
    * Compute the hash code.
    */
   public int hashCode() {
-    return 0;           // STUB
+    int hash = 0;
+    for (Object objpair : this.values){
+      KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) objpair;
+      hash = hash + pair.hashCode() ; 
+    }// for
+    return hash;
   } // hashCode()
 
   // +--------------------+------------------------------------------
@@ -71,7 +91,7 @@ public class JSONHash implements JSONValue{
   /**
    * Get the underlying value.
    */
-  public Iterator<KVPair<JSONString,JSONValue>> getValue() {
+  public Iterator<Object> getValue() {
     return this.iterator();
   } // getValue()
 
@@ -84,13 +104,14 @@ public class JSONHash implements JSONValue{
    */
   public JSONValue get(JSONString key) {
     int index = find(key);
-    KVPair<JSONString, JSONValue> pair = values[index];
+    KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) values[index];
     if (pair == null) {
       throw new IndexOutOfBoundsException("Invalid key: " + key);
     } else {
       while (!key.equals(pair.key())) {
         index++;
         if(index >= size) throw new IndexOutOfBoundsException("Invalid key: " + key);
+        pair = (KVPair<JSONString, JSONValue>) values[index];
       }
       return pair.value();
     } // get
@@ -99,14 +120,14 @@ public class JSONHash implements JSONValue{
   /**
    * Get all of the key/value pairs.
    */
-  public Iterator<KVPair<JSONString,JSONValue>> iterator() {
-    return new Iterator<KVPair<JSONString, JSONValue>>() {
+  public Iterator<Object> iterator() {
+    return new Iterator<Object>() {
       int i = 0;
       public boolean hasNext() {
         return this.i < JSONHash.this.size;
       } // hasNext()
 
-      public KVPair<JSONString, JSONValue> next() throws NoSuchElementException {
+      public Object next() throws NoSuchElementException {
         while(JSONHash.this.values[i] == null){
           if(!this.hasNext()){
             throw new NoSuchElementException();
@@ -122,14 +143,29 @@ public class JSONHash implements JSONValue{
    * Set the value associated with a key.
    */
   public void set(JSONString key, JSONValue value) {
+    boolean set = false;
+    if (this.size >= (this.values.length * LOAD_FACTOR)) {
+      expand();
+    }//if size is approaching load factor
     int index = find(key);
     if (this.values[index] != null) {
-      while (index < this.values.length) {
+      while (index < this.values.length - 1) {
         index++;
         if (this.values[index] == null) {
           this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
-        }
-      }
+          set = true;
+        }//ifempty
+      }//while
+      if(!set){
+        this.expand();
+        while (index < this.values.length) {
+          index++;
+          if (this.values[index] == null) {
+            this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
+            set = true;
+          }//if empty
+        }//while
+      }//if not set
     } else {
       this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
     }
@@ -147,22 +183,36 @@ public class JSONHash implements JSONValue{
    * Expand the size of the table.
    */
   void expand() {
+    //save old vals
+    Object[] old =  this.values;
     // Figure out the size of the new table.
     int newSize = 2 * this.values.length + 6;
     // Create a new table of that size.
     Object[] newPairs = new Object[newSize];
     // Move all pairs from the old table to their appropriate
     // location in the new table.
-    // STUB
+    for(int i = 0; i < old.length; i++){
+      newPairs[i] = old[i];
+    }
     // And update our pairs
+    this.values =  newPairs;
   } // expand()
 
 
   int find(JSONString key){
     int index = Math.abs(key.hashCode()) % this.values.length;
-    while(!(this.values[index]).key().equals(key) && this.values[index] != null){
+    if(this.values[index] != null){
+      while (!((KVPair<JSONString, JSONValue>) (this.values[index])).key().equals(key)){
       index = (index + (int)PROBE_OFFSET) % this.size;
-    }
+        //to fix issue with using mod arithmetic
+      if (this.size == (int)PROBE_OFFSET) { 
+        index++;
+        }
+      if(this.values[index] == null){
+        return index;
+        }//if space is found
+      }//while
+    }//if index != null
     return index;
-  }
+  }//find
 } // class JSONHash
