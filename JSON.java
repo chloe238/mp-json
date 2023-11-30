@@ -51,7 +51,7 @@ public class JSON {
     JSONValue result = parseKernel(source);
     if (-1 != skipWhitespace(source)) {
       throw new ParseException("Characters remain at end", pos);
-    }
+    } // if
     return result;
   } // parse(Reader)
 
@@ -67,9 +67,10 @@ public class JSON {
     ch = skipWhitespace(source);
     if (-1 == ch) {
       throw new ParseException("Unexpected end of file", pos);
-    } else {
-        
+    } else {    
       String input = "";
+
+      //Integers and Reals
       if (Character.isDigit(((char) ch)) || '.' == ch) {
         // Do/while because we need to add in that first character we read
         do {
@@ -80,30 +81,31 @@ public class JSON {
           return new JSONReal(input);
         } else {
           return new JSONInteger(input);
-        }
-      }
+        } // if/else
+      } // if isDigit
 
+      // Strings
       else if ('\"' == ch) {
-        //We don't want to skip whitespace when reading strings
+        // We don't want to skip whitespace when reading strings
         while ('\"' != (ch = source.read())) {
           if (-1 == ch) {
             throw new ParseException("Unexpected end of file", pos);
-          }
+          } // if
           input += String.valueOf((char) ch);
         } // while we don't hit a second double quote
-        if (isEndingChar(ch = skipWhitespace(source))){
+        if (isEndingChar(ch = skipWhitespace(source))) {
           cachedChar = ch;
           return new JSONString(input);  
-        }
-        
-      }
-//(-1 != (ch = skipWhitespace(source)) && ',' != ch && ']' != ch)
+        } // if isEndingChar    
+      } // else if double quote
+
+      // Constants
       else if ('t' == ch || 'f' == ch || 'n' == ch) {
         do {
           input += String.valueOf((char) ch);
         } while (!isEndingChar(ch = skipWhitespace(source)));
         cachedChar = ch;
-        switch(input){
+        switch(input) {
           case "true":
             return JSONConstant.TRUE;
           case "false":
@@ -112,51 +114,52 @@ public class JSON {
             return JSONConstant.NULL;  
           default:
             throw new IOException("Invaild Constant Value");
-        }
-      }
+        } // switch
+      } // else if constant
 
+      // Arrays
       else if ('[' == ch) {
         JSONArray resultArr = new JSONArray();
-        while (']' != ch){
+        while (']' != ch) {
           if (-1 == ch) {
             throw new ParseException("Unexpected end of file", pos);
-          }
+          } // if
           resultArr.add(parseKernel(source));
           ch = cachedChar;
-        }
-        if (isEndingChar(ch = skipWhitespace(source))){
+        } // while we don't hit a closing bracket
+        if (isEndingChar(ch = skipWhitespace(source))) {
           cachedChar = ch;
           return resultArr;
-        }
-      }
+        } // if isEndingChar
+      } // else if array
 
+      // Hashes
       else if ('{' == ch) {
         JSONHash resultHash = new JSONHash();
-        while ('}' != ch){
+        JSONString key = null;
+        JSONValue val = null;
+        while ('}' != ch) {
           if (-1 == ch) {
             throw new ParseException("Unexpected end of file", pos);
-          }
+          } // if
+          JSONValue temp = parseKernel(source);
           ch = cachedChar;
+
           if (':' == ch) {
-            JSONString key = (JSONString) parseKernel(source);
-          }
-          if (',' == ch) {
-            JSONValue val = parseKernel(source);
-          }
-          //resultHash.set(parseKernel(source));
-          
-        }
-        cachedChar = ch;
-        return resultHash;
-      }
-    }
-    throw new ParseException("Unimplemented", pos);
+            key = (JSONString) temp;
+          } else if (',' == ch || '}' == ch) {
+            val = temp;
+            resultHash.set(key, val);
+          } // if/else
+        } // while no closing brace
+        if (isEndingChar(ch = skipWhitespace(source))) {
+          cachedChar = ch;
+          return resultHash;
+        } // if isEndingChar
+      } // else if hash
+    } // if/else
+    throw new ParseException("Invalid Value", pos);
   } // parseKernel(Reader)
-  
-  static JSONValue parseKernelHelper(String input) throws ParseException, IOException {
-    
-    throw new ParseException("Unimplemented", pos);
-  }
 
   /**
    * Get the next character from source, skipping over whitespace.

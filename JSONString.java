@@ -3,7 +3,7 @@ import java.io.PrintWriter;
 /**
  * JSON strings.
  */
-public class JSONString implements JSONValue{
+public class JSONString implements JSONValue {
 
   // +--------+------------------------------------------------------
   // | Fields |

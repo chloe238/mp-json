@@ -1,3 +1,6 @@
+- A text file of the code used to test the library. Here in case group members want to recreate the
+  original main method
+
 import java.io.PrintWriter;
 
 public class TestDELETE {
@@ -28,8 +31,7 @@ public class TestDELETE {
     System.out.println("Val at key: " + test.get(new JSONString("key " + 15)));
     System.out.println(test.toString());
     */
-    //try { System.out.println((JSON.parse("1223")).toString()); } catch (Exception e) {System.out.println("Didn't work");}
-    
+
     System.out.println("Integer test");
     try { (JSON.parse("1223")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
     System.out.println("-------------------");
@@ -43,11 +45,15 @@ public class TestDELETE {
     System.out.println("-------------------");
 
     System.out.println("Constant test");
-    try { (JSON.parse("true")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
+    try { (JSON.parse("null")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
     System.out.println("-------------------");
 
     System.out.println("Array test");
     try { (JSON.parse("[123, \"help\", null]")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
+    System.out.println("-------------------");
+
+    System.out.println("Hash test");
+    try { (JSON.parse("{ \"A\": [123, \"help\", null], \"B\": 456, \"C\": \"PLEASE WORK\"}")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
     System.out.println("-------------------");
   }//main
 }

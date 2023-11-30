@@ -4,7 +4,7 @@ import java.math.BigInteger;
 /**
  * JSON integers.
  */
-public class JSONInteger implements JSONValue{
+public class JSONInteger implements JSONValue {
 
   // +--------+------------------------------------------------------
   // | Fields |

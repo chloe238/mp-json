@@ -6,21 +6,35 @@ import java.util.Random;
 /**
  * JSON hashes/objects.
  */
-public class JSONHash implements JSONValue{
+public class JSONHash implements JSONValue {
   
   /**
    * The load factor for expanding the table.
    */
   static final double LOAD_FACTOR = 0.5;
+
+  /**
+   * The offset for searching the table for a valid index.
+   */
   static final double PROBE_OFFSET = 17;
+
+  /**
+   * The initial size of the underlying array.
+   */
   static final int INITIAL_SIZE = 10;
 
   // +--------+------------------------------------------------------
   // | Fields |
   // +--------+
 
+  /**
+   * The size of the hash.
+   */
   int size;
 
+  /**
+   * The hash underlying array.
+   */
   Object[] values;
 
   
@@ -32,6 +46,9 @@ public class JSONHash implements JSONValue{
   // | Constructors |
   // +--------------+
 
+  /**
+   * Create a new JSONHash.
+   */
   public JSONHash () {
     this.size = 0;
     this.values = new Object[INITIAL_SIZE];
@@ -60,8 +77,8 @@ public class JSONHash implements JSONValue{
    */
   public boolean equals(Object other) {
     for (int i = 0; i < size(); i++) {
-    if (!((other instanceof JSONHash) && ((JSONHash) other).values[i].equals(this.values[i]))) {
-      return false;
+      if (!((other instanceof JSONHash) && ((JSONHash) other).values[i].equals(this.values[i]))) {
+        return false;
       } // if
     } // for
     return true;        
@@ -73,7 +90,7 @@ public class JSONHash implements JSONValue{
   @SuppressWarnings("unchecked")
   public int hashCode() {
     int hash = 0;
-    for (Object objpair : this.values){
+    for (Object objpair : this.values) {
       KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) objpair;
       hash = hash + pair.hashCode(); 
     } // for
@@ -114,11 +131,11 @@ public class JSONHash implements JSONValue{
     } else {
       while (!key.equals(pair.key())) {
         index++;
-        if(index >= size) throw new IndexOutOfBoundsException("Invalid key: " + key);
+        if (index >= size) throw new IndexOutOfBoundsException("Invalid key: " + key);
         pair = (KVPair<JSONString, JSONValue>) values[index];
-      }
+      } // while
       return pair.value();
-    } // get
+    } // if/else
   } // get(JSONString)
 
   /**
@@ -163,22 +180,6 @@ public class JSONHash implements JSONValue{
           this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
         } // if empty
       } // while
-      
-      /* 
-      Commenting this out as it doesn't seem to affect anything now. Was this meant
-      to assist with overwriting values?
-
-      if (!set) {
-        this.expand();
-        while (index < this.values.length) {
-          index++;
-          if (this.values[index] == null) {
-            this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
-            set = true;
-          } // if empty
-        } // while
-      } // if not set
-      */
     } // if/else
     this.size++;
   } // set(JSONString, JSONValue)
@@ -191,7 +192,7 @@ public class JSONHash implements JSONValue{
   } // size()
 
   // +--------------------------+------------------------------------
-  // | Helper Hashtable methods |
+  // | Helper hashtable methods |
   // +--------------------------+
   
   /**
@@ -201,14 +202,14 @@ public class JSONHash implements JSONValue{
     //save old vals
     Object[] old =  this.values;
     // Figure out the size of the new table.
-    int newSize = 2 * this.values.length + 6;
+    int newSize = 2 * this.values.length + rand.nextInt(10);
     // Create a new table of that size.
     Object[] newPairs = new Object[newSize];
     // Move all pairs from the old table to their appropriate
     // location in the new table.
     for (int i = 0; i < old.length; i++) {
       newPairs[i] = old[i];
-    }
+    } // for
     // And update our pairs
     this.values =  newPairs;
   } // expand()
