@@ -102,22 +102,6 @@ public class JSONHash implements JSONValue{
   // | Hashtable methods |
   // +-------------------+
 
-  @SuppressWarnings("unchecked")
-  public boolean containsKey(JSONString key) {
-    int index = find(key);
-    KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) values[index];
-    if (pair == null) {
-      throw new IndexOutOfBoundsException("Invalid key: " + key);
-    } else {
-      while (!key.equals(pair.key())) {
-        index++;
-        if(index >= size) return false;
-        pair = (KVPair<JSONString, JSONValue>) values[index];
-      }
-      return true;
-    } // get
-  }
-
   /**
    * Get the value associated with a key.
    */
@@ -151,7 +135,7 @@ public class JSONHash implements JSONValue{
       } // hasNext()
 
       public Object next() throws NoSuchElementException {
-        if(!this.hasNext()){
+        if (!this.hasNext()) {
           throw new NoSuchElementException();
         } // if no next element
         return JSONHash.this.values[i++];
