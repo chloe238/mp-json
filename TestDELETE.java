@@ -45,5 +45,9 @@ public class TestDELETE {
     System.out.println("Constant test");
     try { (JSON.parse("true")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
     System.out.println("-------------------");
+
+    System.out.println("Array test");
+    try { (JSON.parse("[123, \"help\", null]")).writeJSON(pen); } catch (Exception e) {System.out.println("Didn't work");}
+    System.out.println("-------------------");
   }//main
 }
