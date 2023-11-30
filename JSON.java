@@ -62,10 +62,11 @@ public class JSON {
     ch = skipWhitespace(source);
     if (-1 == ch) {
       throw new ParseException("Unexpected end of file", pos);
+    } else {
+      
     }
-    // STUB
     throw new ParseException("Unimplemented", pos);
-  } // parseKernel
+  } // parseKernel(Reader)
 
   /**
    * Get the next character from source, skipping over whitespace.
