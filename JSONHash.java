@@ -169,11 +169,10 @@ public class JSONHash implements JSONValue{
       expand();
     } // if size is approaching load factor
     int index = find(key);
-    if (this.values[index] != null) {
-      if (((KVPair<JSONString, JSONValue>) this.values[index]).key().equals(key)) {
-        this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
-        return;
-      }
+    if (this.values[index] == null || ((KVPair<JSONString, JSONValue>) this.values[index]).key().equals(key)) {
+      this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
+      return;
+    } else {  
       while (index < this.values.length - 1) {
         index++;
         if (this.values[index] == null) {
@@ -196,8 +195,6 @@ public class JSONHash implements JSONValue{
         } // while
       } // if not set
       */
-    } else {
-      this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
     } // if/else
     this.size++;
   } // set(JSONString, JSONValue)
