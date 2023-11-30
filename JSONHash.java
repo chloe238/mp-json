@@ -7,6 +7,7 @@ import java.util.Random;
  * JSON hashes/objects.
  */
 public class JSONHash implements JSONValue{
+  
   /**
    * The load factor for expanding the table.
    */
@@ -42,6 +43,7 @@ public class JSONHash implements JSONValue{
   /**
    * Convert to a string (e.g., for printing).
    */
+  @SuppressWarnings("unchecked")
   public String toString() {
     String str = "";
     for (Object objpair : this.values){
@@ -68,6 +70,7 @@ public class JSONHash implements JSONValue{
   /**
    * Compute the hash code.
    */
+  @SuppressWarnings("unchecked")
   public int hashCode() {
     int hash = 0;
     for (Object objpair : this.values){
@@ -102,6 +105,7 @@ public class JSONHash implements JSONValue{
   /**
    * Get the value associated with a key.
    */
+  @SuppressWarnings("unchecked")
   public JSONValue get(JSONString key) {
     int index = find(key);
     KVPair<JSONString, JSONValue> pair = (KVPair<JSONString, JSONValue>) values[index];
@@ -124,17 +128,18 @@ public class JSONHash implements JSONValue{
     return new Iterator<Object>() {
       int i = 0;
       public boolean hasNext() {
-        return this.i < JSONHash.this.size;
+        do {
+          i++;
+        } while (JSONHash.this.values[i] == null && i < JSONHash.this.size);
+        // do/while
+        return i < JSONHash.this.size;
       } // hasNext()
 
       public Object next() throws NoSuchElementException {
-        while(JSONHash.this.values[i] == null){
-          if(!this.hasNext()){
-            throw new NoSuchElementException();
-          }
-          i++;
-        }
-        return JSONHash.this.values[i];
+        if(!this.hasNext()){
+          throw new NoSuchElementException();
+        } // if no next element
+        return JSONHash.this.values[i++];
       } // next()
     }; // new Iterator
   } // iterator()
@@ -154,9 +159,9 @@ public class JSONHash implements JSONValue{
         if (this.values[index] == null) {
           this.values[index] = new KVPair<JSONString, JSONValue>(key, value);
           set = true;
-        }//ifempty
-      }//while
-      if(!set){
+        }// if empty
+      }// while
+      if (!set) {
         this.expand();
         while (index < this.values.length) {
           index++;
@@ -179,6 +184,10 @@ public class JSONHash implements JSONValue{
     return this.size;
   } // size()
 
+  // +--------------------------+------------------------------------
+  // | Helper Hashtable methods |
+  // +--------------------------+
+  
   /**
    * Expand the size of the table.
    */
@@ -198,21 +207,25 @@ public class JSONHash implements JSONValue{
     this.values =  newPairs;
   } // expand()
 
-
-  int find(JSONString key){
+  /**
+   * Return the index of key. If key is not in the table, return
+   * a possible location to put key.
+   */
+  @SuppressWarnings("unchecked")
+  int find(JSONString key) {
     int index = Math.abs(key.hashCode()) % this.values.length;
-    if(this.values[index] != null){
-      while (!((KVPair<JSONString, JSONValue>) (this.values[index])).key().equals(key)){
-      index = (index + (int)PROBE_OFFSET) % this.size;
+    if (this.values[index] != null) {
+      while (!((KVPair<JSONString, JSONValue>) this.values[index]).key().equals(key)) {
         //to fix issue with using mod arithmetic
-      if (this.size == (int)PROBE_OFFSET) { 
-        index++;
-        }
-      if(this.values[index] == null){
-        return index;
-        }//if space is found
-      }//while
-    }//if index != null
+        index = (index + (int)PROBE_OFFSET) % this.size;
+        if (this.size == (int)PROBE_OFFSET) { 
+          index++;
+        } // if
+        if (this.values[index] == null) {
+          return index;
+        } // if space is found
+      } // while
+    } // if index != null
     return index;
-  }//find
+  } // find(JSONString)
 } // class JSONHash
